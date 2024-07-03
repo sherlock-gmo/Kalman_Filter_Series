@@ -13,13 +13,11 @@ def get_data(path,file_csv):
 	Sgamma = []
 	Mgamma = []
 	with open(path+file_csv, 'r') as datafile:
-		ploting = csv.reader(datafile, delimiter='\t')
+		ploting = csv.reader(datafile, delimiter=',') #\t #,
 		for ROWS in ploting:
 			T.append(float(ROWS[0]))
-			#Sgamma.append(float(ROWS[1]))
-			#Mgamma.append(float(ROWS[2]))
-			Sgamma.append(float(ROWS[2]))
-			Mgamma.append(float(ROWS[3]))
+			Sgamma.append(float(ROWS[1]))#3 #1
+			Mgamma.append(float(ROWS[2]))#4 #2
 		N = len(T)
 		T = np.reshape(np.array(T).T,(N,1))
 		Sgamma = np.reshape(np.array(Sgamma).T,(N,1))
@@ -73,23 +71,21 @@ def Q_calc(sigma_Mgamma,h):
 #**************************************************************************************************
 #**************************************************************************************************
 #**************************************************************************************************
-
-#****************************************************************PARAMETROS INICIALES
-# Mediciones de la posicion del auto
-#path = '/home/ros/Autominy_REAL/autominy_ws/src/dotmex_final/calibration/servomotor/'
-path = '/home/sherlock2204f/Autominy_REAL/autominy_ws/src/dotmex_final/calibration/servomotor/'
-#file_csv = '/data/sensors_servo_test_175.csv'
-file_csv = 'servo_bag3.csv'
+#							PARAMETROS INICIALES
+path = '/home/sherlock2204f/Mis_Documentos/Doctorado/Tesis/Autominy/servomotor/Dual_Kalman_Predictor/'
+#path = '/media/sherlock1804/ee29a259-316c-4a85-b9d1-ad38f039a480/home/sherlock2204f/Mis_Documentos/Doctorado/Tesis/Desarrollo_Experimental/servomotor/Dual_Kalman_Predictor/'
+#file_csv = 'sensors_bag_3_225.csv'
+file_csv = 'servo.csv'
 
 # Parametros del filtro
-h = 0.01											# Periodo de muestreo [s]
+h = 0.01									# Periodo de muestreo [s]
 sigma_Mgamma = 0.009			# Des. Est. de la medicion de la posicion del servomotor
 # Parametros del modelo
-b = 2.0 #45.34469241 
-a1 = 5.0 #3.61595875 
-a2 = 7.0 #111.7945802 
-c = 1.0 #0.28106044 
-d = 1.0 #1.2601712 
+a1 = 20.001	#10.0 
+a2 = 100.0	#90.0 
+b = 38.0	#30.0
+c = 0.0		#1.0 
+d = 0.0	#-1.0
 w = 0.0
 # Matrices para el filtro de Kalman
 k2 = a2-(a1**2/4.0)
@@ -100,14 +96,15 @@ Bd = BWd_calc(a1,a2,b,h,complex_f)
 Wd = BWd_calc(a1,a2,w,h,complex_f)
 Q = Q_calc(sigma_Mgamma,h)
 R = np.array([[sigma_Mgamma**2]]) # Si es un escalar, definirlo como matriz de 1x1
-H = np.array([[1, 0]])
+H = np.array([[1.0, 0.0]])
 T,S_gamma,M_gamma = get_data(path,file_csv)		# Vector de las mediciones realizadas
 T = T-T[0] # Para medir desde el segundo cero
+tf = T[-1]
 #*********************************INICIO DEL CICLO*********************************
 # Inicializacion
-X0 = np.array([0.0,0.0])		# Estado inicial
+X0 = np.array([-0.009744,0.0])		# Estado inicial
 X0 = np.reshape(X0,(2,1))
-P0 = np.diag((0.1,0.1))
+P0 = 1.0*np.diag((1.0,1.0))
 # Algoritmo de Kalman
 i = 0
 Xk = []
@@ -115,21 +112,22 @@ N,_ = X0.shape
 Nd,m = S_gamma.shape
 _,l = M_gamma.shape
 
-# P. Pred
+# Parametros del Predictor
 DM_hat = np.zeros((Nd,1))
 M_hat = np.zeros((Nd,1))
 a1_hat = np.zeros((Nd,1))
 a2_hat = np.zeros((Nd,1))
-c_hat = np.zeros((Nd,1))
 b_hat = np.zeros((Nd,1))
+c_hat = np.zeros((Nd,1))
 d_hat = np.zeros((Nd,1))
-GAMMA = [200.0,200.0,100.0,100.0,100.0]	# gamma1,...,gamma5  
-ALPHA = [75, 15]												#alpha1, alpha2
-Par_q0 = [100.0, 100.0, 50.0, 50.0, 1.0]	#a10,a20,b0,c0,d0
-#Par_q0 = [11.8, 107.7, 41.2, 1.2, -2.6]	#a10,a20,b0,c0,d0
-#Par_q0 = [a1, a2, b, c, d]	#a10,a20,b0,c0,d0
-
-Wd = np.zeros((N,1))
+E = np.zeros((Nd,1))
+#GAMMA = [200.0,100.0,70.0,50.0,1.0] #[30.0,45.0,65.0,25.0,0.25] # gamma1,...,gamma5
+GAMMA = np.array([20.0,10.0,150.0,10.0,0.25]) #np.array([15.0,15.0,25.0,1.0,0.25])
+# gamma4 +++ sobretiros
+# gamma3 +++ amplitud
+# lambda**2+alfa2*lambda+alfa1
+ALPHA = [100.0, 20.0] #[150, 25] 	#alpha1, alpha2 
+Par_q0 = [a1, a2, b, c, d]	
 
 for M in M_gamma:
 	zn = np.reshape(M,(l,1))
@@ -142,69 +140,51 @@ for M in M_gamma:
 	Xnn = Kalman.states_act(Knn,H,Xn1n,zn)
 	Pnn = Kalman.covarianze_act(Pn1n,H,Knn,R,N)
 	Xk.append(Xnn)
-
 	# Predictor
 	V = [S_gamma[i],Xk[i][0],Xk[i][1]]
 	a1, a2, b, c, d, DMh, Mh = Kalman.predictor(Par_q0,V,ALPHA,GAMMA,DM_hat[i-1],M_hat[i-1],h)
 	a1_hat[i] = a1
 	a2_hat[i] = a2
-	c_hat[i] = c
 	b_hat[i] = b
+	c_hat[i] = c
 	d_hat[i] = d
 	M_hat[i] = Mh
 	DM_hat[i] = DMh
+	E[i] = E[i-1]+(Xk[i][0]-Mh)**2
 	Par_q0 = [a1, a2, b, c, d]	#a10,a20,b0,c0,d0
 
 	# Actualizacion del modelo
 	w = d-c*Xk[i][1][0]/abs(Xk[i][1][0])
+	#w = d-c*DMh[0]/abs(DMh[0])
 	k2 = a2-(a1**2/4.0)
 	if (k2>0): complex_f = True
 	else: complex_f = False
-	if (i>4000):
-		F = F_calc(a1,a2,h,complex_f)
-		Bd = BWd_calc(a1,a2,b,h,complex_f)
-		#Wd = BWd_calc(a1,a2,w,h,complex_f)
-		
+	F = F_calc(a1,a2,h,complex_f)
+	Bd = BWd_calc(a1,a2,b,h,complex_f)
+	Wd = BWd_calc(a1,a2,w,h,complex_f)
+
 	# Realimentacion del algoritmo
 	X0 = Xnn
 	P0 = Pnn
 	i = i+1
+	
 Xk = np.array(Xk)
-print('i ',i)
-print('a1 a2 b c d ',a1_hat[-1],a2_hat[-1],b_hat[-1],c_hat[-1],d_hat[-1])
+print('a1 a2 b c d ')
+print(a1_hat[-1][0],a2_hat[-1][0],b_hat[-1][0],c_hat[-1][0],d_hat[-1][0])
 
-# Guardado de datos
+#	Guardado de datos
 states = np.concatenate((T,S_gamma),axis=1)
 states = np.concatenate((states,Xk[:,0]),axis=1)
 states = np.concatenate((states,Xk[:,1]),axis=1)
 np.save('states_ex.npy', states)
-print(states.shape)
-
-
-"""
-# Coparacion con la derivada numerica y el filtro pasa-altos
-Dn = []
-Df = []
-N,_ = T.shape
-fc = 47.7465
-wc = 2*np.pi*fc
-df0 = 0.0
-for i in range (0,N):
-	df = (1.0/(1.0+h*wc))*(wc*(M_gamma[i]-M_gamma[i-1])+df0) #D = (wc*s/s+wc)M_gamma
-	dn = (M_gamma[i]-M_gamma[i-1])/h 
-	df0 = df
-	Dn.append(dn)
-	Df.append(df)
-Dn = np.array(Dn)
-Df = np.array(Df)
-"""
+np.save('Par_q0.npy', np.array(Par_q0))
 
 # Graficas
 plot1 = plt.figure(1)
-plt.plot(T,M_gamma,'r-',T,Xk[:,0],'bo',T,M_hat,'g-')
+plt.plot(T,S_gamma,'k',T,M_gamma,'r.',T,Xk[:,0],'b',T,M_hat,'g')
 plt.xlabel('[s]')
-plt.ylabel('M_gamma')
-plt.legend(['mediciones','actualizaciones','estimaciones'])
+plt.legend(['S_gamma','M_gamma','M_kalman-pred','M_hat'])
+plt.xlim([0,tf])
 plt.grid()
 
 plot2 = plt.figure(2)
@@ -213,18 +193,16 @@ plt.xlabel('[s]')
 plt.legend(['DM_gamma','DM_hat'])
 plt.grid()
 
-"""
 plot3 = plt.figure(3)
-plt.plot(T[1:],Xk[1:,1],'b',T,Dn,'r',T,Df,'y')
-plt.xlabel('[s]')
-plt.legend(['DM_gamma','Dnum_gamma','Df_gamma'])
+plt.plot(T,a1_hat,'r',T,a2_hat,'g',T,b_hat,'m',T,c_hat,'b',T,d_hat,'y')
+plt.xlabel('t [s]')
+plt.legend(["a1_hat","a2_hat","b_hat","c_hat","d_hat"])
 plt.grid()
-"""
 
 plot4 = plt.figure(4)
-plt.plot(T,a1_hat,'r',T,a2_hat,'g',T,c_hat,'m',T,b_hat,'b',T,d_hat,'y')
+plt.plot(T,E,'b')
 plt.xlabel('t [s]')
-plt.legend(["a1_hat","a2_hat","c_hat","b_hat","d_hat"])
+plt.legend(["IEC"])
 plt.grid()
 
 plt.show()

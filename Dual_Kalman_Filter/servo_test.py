@@ -32,7 +32,7 @@ def runge_kutta04_2ord(P, S, M20, M10, h):
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
-States = np.load('states_ex.npy')
+States = np.load('states_bag_275.npy')
 T = States[:,0]
 S_gamma = States[:,1]
 M_gamma = States[:,2]
@@ -46,12 +46,13 @@ E = np.zeros((N,1))
 M_pred = np.zeros((N,1))
 DM_pred = np.zeros((N,1))
 
+
 Par_q0 = np.load('Par_q0.npy')
 a1 = Par_q0[0]
 a2 = Par_q0[1]
-b = Par_q0[2] #1.5*
+b = Par_q0[2] 
 c = Par_q0[3]
-d = Par_q0[4] #0.75*
+d = Par_q0[4]
 print('a1 a2 b c d')
 print(Par_q0)
 
@@ -79,13 +80,13 @@ plt.plot(T,0.4*S_gamma,'k',T,M_gamma,'r',T,M_pred,'b')
 plt.xlabel('t [s]')
 plt.legend(["S_gamma","M_gamma","M_pred"])
 plt.grid()
-"""
+
 plot2 = plt.figure(2)
 plt.plot(T,DM_gamma,'r',T,DM_pred,'g')
 plt.xlabel('t [s]')
 plt.legend(["DM_gamma","DM_pred"])
 plt.grid()
-"""
+
 plot3 = plt.figure(3)
 plt.plot(T,E,'b')
 plt.xlabel('t [s]')
