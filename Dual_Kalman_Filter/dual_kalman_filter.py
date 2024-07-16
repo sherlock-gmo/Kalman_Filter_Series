@@ -12,11 +12,11 @@ def get_data(path,file_csv):
 	Sgamma = []
 	Mgamma = []
 	with open(path+file_csv, 'r') as datafile:
-		ploting = csv.reader(datafile, delimiter='\t') #\t #,
+		ploting = csv.reader(datafile, delimiter=',') #\t #,
 		for ROWS in ploting:
 			T.append(float(ROWS[0]))
-			Sgamma.append(float(ROWS[3])) #3
-			Mgamma.append(float(ROWS[4])) #4
+			Sgamma.append(float(ROWS[1])) #3
+			Mgamma.append(float(ROWS[2])) #4
 		N = len(T)
 		T = np.reshape(np.array(T).T,(N,1))
 		Sgamma = np.reshape(np.array(Sgamma).T,(N,1))
@@ -93,16 +93,15 @@ def d_calc(DM_gamma):
 #**************************************************************************************************
 #**************************************************************************************************
 #							PARAMETROS INICIALES
-path = '/home/sherlock2204f/Kalman_Filter_Series/Dual_Linear_Kalman_Filter_Estimation/'
-#path = '/media/sherlock1804/ee29a259-316c-4a85-b9d1-ad38f039a480/home/sherlock2204f/Mis_Documentos/Doctorado/Tesis/Desarrollo_Experimental/servomotor/Dual_Linear_Kalman_Filter_Estimation/'
-#file_csv = 'servo.csv'
-file_csv = 'sensors_bag_5.csv'
+path = '/home/sherlock2204f/Kalman_Filter_Series/Dual_Kalman_Filter/'
+file_csv = 'servo.csv'
+#file_csv = 'sensors_bag_5.csv'
 
 # Parametros del filtro
 h = 0.01									# Periodo de muestreo [s]
 sigma_Mgamma = 0.009			# Des. Est. de la medicion de la posicion del servomotor
 # Parametros del modelo
-a1 = 21.0 #3.0 
+a1 = 20.001 #3.0 
 a2 = 100.0 #8.0 
 b = 38.0 #2.0		
 # Matrices para el filtro de Kalman para estimar estados
@@ -118,7 +117,7 @@ T,S_gamma,M_gamma = get_data(path,file_csv)		# Vector de las mediciones realizad
 T = T-T[0] # Para medir desde el segundo cero
 #*********************************INICIO DEL CICLO*********************************
 # Inicializacion
-X0 = np.array([0.0,0.0])		# Estado inicial
+X0 = np.array([-0.009744,0.0])		# Estado inicial
 X0 = np.reshape(X0,(2,1))
 P0 = 1.0*np.diag((1.0,10.0))
 
@@ -131,8 +130,8 @@ Xk = []
 hk = []
 DDM_gamma = []
 d0 = 0.0
-lambda0 = 1.0 #1.1
-eps = 0.75 #0.75
+lambda0 = 1.24 #1.1
+eps = 0.85 #0.75
 i = 0
 N,_ = X0.shape 
 _,m = S_gamma.shape
@@ -153,8 +152,6 @@ for y in M_gamma:
 	Pnn_x = Kalman.X_covarianze_act(Pn1n_x,H,Knn_x,R,N)
 
 	# Actualizacion de parametros
-	#dn = np.reshape(d,(l,1))
-	#xn = np.reshape(Xe[i,:],(n,1))
 	xe = np.concatenate((-Xnn,un),axis=0)
 	dn = (Xnn[1,0]-d0)/h
 	Knn_p = Kalman.P_kalmanG_act(Pn1n_p,H0,eps)
@@ -203,25 +200,6 @@ bf = hk[-1,2][0]
 Par_q0 = np.array([a1f,a2f,bf,0.0,0.0])
 np.save('Par_q0.npy', Par_q0)
 
-"""
-# Coparacion con la derivada numerica y el filtro pasa-altos
-Dn = []
-Df = []
-N,_ = T.shape
-fc = 47.7465
-wc = 2*np.pi*fc
-df0 = 0.0
-for i in range (0,N):
-	# Filtro pasa-altos
-	df = (1.0/(1.0+h*wc))*(wc*(M_gamma[i]-M_gamma[i-1])+df0) 
-	# Derivada numerica
-	dn = (M_gamma[i]-M_gamma[i-1])/h 
-	df0 = df
-	Dn.append(dn)
-	Df.append(df)
-Dn = np.array(Dn)
-Df = np.array(Df)
-"""
 
 # Graficas
 plot1 = plt.figure(1)
@@ -244,9 +222,12 @@ plt.legend(['DM_gamma','Dnum_gamma','Df_gamma'])
 plt.grid()
 """
 plot4 = plt.figure(4)
-plt.plot(T,hk[:,0],'b',T,hk[:,1],'g',T,hk[:,2],'r')
+plt.plot(T,hk[:,0],'b',T,hk[:,1],'g',T,hk[:,2],'r',linewidth=2.5)
 plt.xlabel('[s]')
-plt.legend(['a2','a1','b'])
+plt.legend(['a2','a1','b'],loc='center right',prop={'size': 18})
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
+plt.xlim([0,90])
 plt.grid()
 
 plt.show()
