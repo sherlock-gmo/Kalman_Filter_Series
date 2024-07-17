@@ -113,21 +113,26 @@ plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 plt.grid()
 
-plot3 = plt.figure(3)
-plt.plot(T,param_hat[:,0],'r',T,param_hat[:,1],'g',T,param_hat[:,2],'m',T,param_hat[:,3],'b',T,param_hat[:,4],'y',linewidth=2.5)
-plt.xlabel('t [s]')
-plt.legend(["a1_hat","a2_hat","b_hat","c_hat","d_hat"],loc='upper right',prop={'size': 18})
-plt.xticks(fontsize=20)
-plt.yticks(fontsize=20)
-plt.xlim([0,tf]) #tf
-plt.grid()
-
-plot4 = plt.figure(4)
+plot2 = plt.figure(2)
 plt.plot(T,E,'b',linewidth=2.5)
 plt.xlabel('t [s]')
 plt.legend(["IEC"],loc='lower right',prop={'size': 18})
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 plt.grid()
+
+fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(nrows=5, sharex=True)
+AX = [ax1, ax2, ax3, ax4, ax5]
+colors = ['r','g','m','b','y']
+names = ["a1_hat","a2_hat","b_hat","c_hat","d_hat"]
+i = 0
+for ax in AX:
+	ax.plot(T,param_hat[:,i],colors[i],label=names[i])
+	ax.legend(loc="lower left",prop={'size': 18})
+	ax.tick_params(axis='x', labelsize=20)
+	ax.tick_params(axis='y', labelsize=20)
+	ax.set_xlim([0,tf])
+	ax.grid()
+	i=i+1
 
 plt.show()
