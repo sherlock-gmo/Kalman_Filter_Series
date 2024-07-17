@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.linalg import inv
 
-class linear_kalman_filter():
+class dual_kalman_filter():
 	def __init__(self):
 		self.P_flag = True # Act. de covarianza: True=completa//False=simple
 	#------------------------------------------------------------------------------------------
@@ -9,9 +9,9 @@ class linear_kalman_filter():
 	#------------------------------------------------------------------------------------------
 	#										ESTIMACION DE ESTADOS
 	# Extrapolacion de estados
-	def states_ext(self,F,B,Xnn,u):
+	def states_ext(self,F,B,W,Xnn,u):
 		x1 = np.matmul(B,u)
-		Xn1n = np.matmul(F,Xnn)+x1
+		Xn1n = np.matmul(F,Xnn)+x1+W
 		return Xn1n
 	# Extrapolacion de la covarianza de los estados
 	def X_covariance_ext(self,F,Pnn,Q):
