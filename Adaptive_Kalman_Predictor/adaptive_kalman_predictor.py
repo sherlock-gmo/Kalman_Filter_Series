@@ -127,7 +127,7 @@ colors = ['r','g','m','b','y']
 names = ["a1_hat","a2_hat","b_hat","c_hat","d_hat"]
 i = 0
 for ax in AX:
-	ax.plot(T,param_hat[:,i],colors[i],label=names[i])
+	ax.plot(T,param_hat[:,i],colors[i],label=names[i],linewidth=2.5)
 	ax.legend(loc="lower left",prop={'size': 18})
 	ax.tick_params(axis='x', labelsize=20)
 	ax.tick_params(axis='y', labelsize=20)
