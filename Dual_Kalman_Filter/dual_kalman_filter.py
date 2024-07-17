@@ -126,13 +126,19 @@ plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 plt.grid()
 
-plot3 = plt.figure(3)
-plt.plot(T,Sk[:,0,0],'r',T,Sk[:,1,0],'g',T,Sk[:,2,0],'m',T,Sk[:,3,0],'b',T,Sk[:,4,0],'y',linewidth=2.5)
-plt.xlabel('t [s]')
-plt.legend(["a1_hat","a2_hat","b_hat","c_hat","d_hat"],loc='upper right',prop={'size': 18})
-plt.xticks(fontsize=20)
-plt.yticks(fontsize=20)
-plt.xlim([0,tf]) #tf
-plt.grid()
+fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(nrows=5, sharex=True)
+AX = [ax1, ax2, ax3, ax4, ax5]
+colors = ['r','g','m','b','y']
+names = ["a1_hat","a2_hat","b_hat","c_hat","d_hat"]
+i = 0
+for ax in AX:
+	ax.plot(T,Sk[:,i,0],colors[i],label=names[i],linewidth=2.5)
+	ax.legend(loc="lower right",prop={'size': 18})
+	ax.tick_params(axis='x', labelsize=20)
+	ax.tick_params(axis='y', labelsize=20)
+	ax.set_xlim([-1.0,tf])
+	ax.set_ylim([Sk[0,i,0],Sk[-1,i,0]*1.001])
+	ax.grid()
+	i=i+1
 
 plt.show()
