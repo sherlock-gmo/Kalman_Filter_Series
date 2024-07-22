@@ -59,6 +59,7 @@ lambda0 = 1.24 #1.1
 eps = 0.85 #0.75
 Dtheta0 = 0.0
 Sk = []
+IEC = np.zeros((Nd,1))
 i = 0
 for th in theta:
 	yn = np.reshape(th,(l,1))											# Medicion
@@ -95,7 +96,6 @@ for th in theta:
 	F = Model.F_calc(a1,a2,h,complex_f)
 	Bd = Model.BWd_calc(a1,a2,b,h,complex_f)
 	Wd = Model.BWd_calc(a1,a2,w,h,complex_f)	# Matriz de ruido del proceso discreta
-
 	# Realimentacion del algoritmo
 	param = [a1, a2, b, c, d]	
 	X0 = Xnn
@@ -106,12 +106,15 @@ for th in theta:
 	Dtheta0 = Xnn[1,0]
 	Xk.append(Xnn)
 	Sk.append(Snn)
+	IEC[i] = IEC[i-1]+(Xk[i][0]-yn)**2			# Integral de error cuadratico del primer estado
 	i = i+1
 		
 Xk = np.array(Xk)
 Sk = np.array(Sk)
 print('a2 a1 b c d ')
 print(Sk[-1,:,0])
+print('IEC ',IEC[-1])
+print('RMSE ',np.sqrt(IEC[-1]/N))
 
 #	Guardado de datos
 np.save('param.npy', np.array(param))
@@ -136,7 +139,7 @@ for ax in AX:
 	ax.legend(loc="lower right",prop={'size': 18})
 	ax.tick_params(axis='x', labelsize=20)
 	ax.tick_params(axis='y', labelsize=20)
-	ax.set_xlim([-1.0,tf])
+	ax.set_xlim([-0.1,5])
 	ax.set_ylim([Sk[0,i,0],Sk[-1,i,0]*1.001])
 	ax.grid()
 	i=i+1

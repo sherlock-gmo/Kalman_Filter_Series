@@ -53,7 +53,7 @@ def runge_kutta04_2ord(P, S, M20, M10, h):
 #----------------------------------------------------------------------------------------------------	
 # ESTADOS MEDIDOS POR EL FILTRO DE KALMAN
 path = '/home/sherlock2204f/Kalman_Filter_Series/Adaptive_Kalman_Predictor/'
-file_csv = 'sensors_bag_275.csv'
+file_csv = 'sensors_bag_225.csv'
 T,theta_ref,theta = get_data(path,file_csv)		# Mediciones obtenidas del experimento
 T = T-T[0]				# Para medir desde el segundo cero
 tf = T[-1]

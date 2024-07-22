@@ -47,7 +47,7 @@ ALPHA = [100.0, 20.0] 										# alpha1, alpha2
 param_hat = np.zeros((Nd,5))							# Parametros estimados por el predictor
 th_hat = np.zeros((Nd,1))									# Primer estado estimado por el predictor
 Dth_hat = np.zeros((Nd,1))								# Segundo estado estimado por el predictor
-E = np.zeros((Nd,1))											# Guardado de la IEC
+IEC = np.zeros((Nd,1))											# Guardado de la IEC
 param = [a1, a2, b, c, d]	
 
 #*********************************ALGORITMO DE KALMAN*********************************
@@ -85,7 +85,7 @@ for th in theta:
 	param_hat[i,:] = [a1,a2,b,c,d]									# Parametros estimados por el predictor
 	th_hat[i] = th_h																# Primer estado estimado por el predictor
 	Dth_hat[i] = Dth_h															# Segundo estado estimado por el predictor
-	E[i] = E[i-1]+(Xk[i][0]-th_h)**2								# Integral de error cuadratico del primer estado
+	IEC[i] = IEC[i-1]+(Xk[i][0]-th_h)**2								# Integral de error cuadratico del primer estado
 	# Realimentacion del algoritmo
 	X0 = Xnn
 	P0 = Pnn
@@ -95,6 +95,8 @@ for th in theta:
 Xk = np.array(Xk)
 print('a1 a2 b c d ')
 print(param_hat[-1,:])
+print('IEC ',IEC[-1])
+print('RMSE ',np.sqrt(IEC[-1]/N))
 
 #	Guardado de datos
 #states = np.concatenate((T,theta_ref),axis=1)
@@ -114,7 +116,7 @@ plt.yticks(fontsize=20)
 plt.grid()
 
 plot2 = plt.figure(2)
-plt.plot(T,E,'b',linewidth=2.5)
+plt.plot(T,IEC,'b',linewidth=2.5)
 plt.xlabel('t [s]')
 plt.legend(["IEC"],loc='lower right',prop={'size': 18})
 plt.xticks(fontsize=20)
